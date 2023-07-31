@@ -7,7 +7,7 @@ import pytest
 
 try:
     import sh
-except (ImportError, ModuleNotFoundError):
+except ImportError:
     sh = None  # sh doesn't support Windows
 import yaml
 from binaryornot.check import is_binary

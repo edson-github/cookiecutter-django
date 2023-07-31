@@ -88,10 +88,7 @@ def get_all_latest_django_versions(
     Grabs all Django versions that are worthy of a GitHub issue.
     Depends on Django versions having higher major version or minor version.
     """
-    _django_max_version = (99, 99)
-    if django_max_version:
-        _django_max_version = django_max_version
-
+    _django_max_version = django_max_version if django_max_version else (99, 99)
     print("Fetching all Django versions from PyPI")
     base_txt = REQUIREMENTS_DIR / "base.txt"
     with base_txt.open() as f:
@@ -106,11 +103,11 @@ def get_all_latest_django_versions(
     _, current_version_str = get_name_and_version(line)
     # Get a tuple of (major, minor) - ignoring patch version
     current_minor_version = DjVersion.parse(current_version_str)
-    newer_versions: set[DjVersion] = set()
-    for django_version in get_django_versions():
-        if current_minor_version < django_version <= _django_max_version:
-            newer_versions.add(django_version)
-
+    newer_versions: set[DjVersion] = {
+        django_version
+        for django_version in get_django_versions()
+        if current_minor_version < django_version <= _django_max_version
+    }
     return current_minor_version, sorted(newer_versions, reverse=True)
 
 
@@ -181,7 +178,7 @@ class GitHubManager:
             matches = re.match(r"\[Update Django] Django (\d+.\d+)$", issue.title)
             if not matches:
                 continue
-            issue_version = DjVersion.parse(matches.group(1))
+            issue_version = DjVersion.parse(matches[1])
             if self.base_dj_version >= issue_version:
                 self.close_issue(issue)
             else:
