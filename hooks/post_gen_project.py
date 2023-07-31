@@ -194,13 +194,11 @@ def handle_js_runner(choice, use_docker, use_async):
             dev_django_cmd = (
                 "uvicorn config.asgi:application --reload" if use_async else "python manage.py runserver_plus"
             )
-            scripts.update(
-                {
-                    "dev": "concurrently npm:dev:*",
-                    "dev:webpack": "webpack serve --config webpack/dev.config.js",
-                    "dev:django": dev_django_cmd,
-                }
-            )
+            scripts |= {
+                "dev": "concurrently npm:dev:*",
+                "dev:webpack": "webpack serve --config webpack/dev.config.js",
+                "dev:django": dev_django_cmd,
+            }
         else:
             remove_dev_deps.append("concurrently")
         update_package_json(remove_dev_deps=remove_dev_deps, scripts=scripts)
@@ -270,8 +268,7 @@ def set_flag(file_path, flag, value=None, formatted=None, *args, **kwargs):
         random_string = generate_random_string(*args, **kwargs)
         if random_string is None:
             print(
-                "We couldn't find a secure pseudo-random number generator on your "
-                "system. Please, make sure to manually {} later.".format(flag)
+                f"We couldn't find a secure pseudo-random number generator on your system. Please, make sure to manually {flag} later."
             )
             random_string = flag
         if formatted is not None:
@@ -288,18 +285,17 @@ def set_flag(file_path, flag, value=None, formatted=None, *args, **kwargs):
 
 
 def set_django_secret_key(file_path):
-    django_secret_key = set_flag(
+    return set_flag(
         file_path,
         "!!!SET DJANGO_SECRET_KEY!!!",
         length=64,
         using_digits=True,
         using_ascii_letters=True,
     )
-    return django_secret_key
 
 
 def set_django_admin_url(file_path):
-    django_admin_url = set_flag(
+    return set_flag(
         file_path,
         "!!!SET DJANGO_ADMIN_URL!!!",
         formatted="{}/",
@@ -307,7 +303,6 @@ def set_django_admin_url(file_path):
         using_digits=True,
         using_ascii_letters=True,
     )
-    return django_admin_url
 
 
 def generate_random_user():
@@ -319,12 +314,11 @@ def generate_postgres_user(debug=False):
 
 
 def set_postgres_user(file_path, value):
-    postgres_user = set_flag(file_path, "!!!SET POSTGRES_USER!!!", value=value)
-    return postgres_user
+    return set_flag(file_path, "!!!SET POSTGRES_USER!!!", value=value)
 
 
 def set_postgres_password(file_path, value=None):
-    postgres_password = set_flag(
+    return set_flag(
         file_path,
         "!!!SET POSTGRES_PASSWORD!!!",
         value=value,
@@ -332,16 +326,14 @@ def set_postgres_password(file_path, value=None):
         using_digits=True,
         using_ascii_letters=True,
     )
-    return postgres_password
 
 
 def set_celery_flower_user(file_path, value):
-    celery_flower_user = set_flag(file_path, "!!!SET CELERY_FLOWER_USER!!!", value=value)
-    return celery_flower_user
+    return set_flag(file_path, "!!!SET CELERY_FLOWER_USER!!!", value=value)
 
 
 def set_celery_flower_password(file_path, value=None):
-    celery_flower_password = set_flag(
+    return set_flag(
         file_path,
         "!!!SET CELERY_FLOWER_PASSWORD!!!",
         value=value,
@@ -349,7 +341,6 @@ def set_celery_flower_password(file_path, value=None):
         using_digits=True,
         using_ascii_letters=True,
     )
-    return celery_flower_password
 
 
 def append_to_gitignore_file(ignored_line):
@@ -460,7 +451,7 @@ def main():
         if "{{ cookiecutter.keep_local_envs_in_vcs }}".lower() == "y":
             append_to_gitignore_file("!.envs/.local/")
 
-    if "{{ cookiecutter.frontend_pipeline }}" in ["None", "Django Compressor"]:
+    if "{{ cookiecutter.frontend_pipeline }}" in {"None", "Django Compressor"}:
         remove_gulp_files()
         remove_webpack_files()
         remove_sass_files()
@@ -504,7 +495,7 @@ def main():
     if "{{ cookiecutter.use_async }}".lower() == "n":
         remove_async_files()
 
-    print(SUCCESS + "Project initialized, keep up the good work!" + TERMINATOR)
+    print(f"{SUCCESS}Project initialized, keep up the good work!{TERMINATOR}")
 
 
 if __name__ == "__main__":
